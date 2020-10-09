@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- log4jdbc-log4j2 -->
+    <logger name="jdbc.sqlonly"        level="DEBUG"/>
+    <logger name="jdbc.sqltiming"      level="INFO"/>
+    <logger name="jdbc.audit"          level="INFO"/>
+    <logger name="jdbc.resultset"      level="ERROR"/>
+    <logger name="jdbc.resultsettable" level="ERROR"/>
+    <logger name="jdbc.connection"     level="DEBUG"/>
+</configuration>
+
+<!-- <configuration>
+
+    <appender name="consoleLog" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%d{yyyy/MM/dd HH:mm:ss}] [%thread] [%-22logger{22}] [%-5level] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.springframework" level="ERROR" />
+    <logger name="org.hibernate.validator" level="ERROR" />
+    <logger name="java.sql.Connection" level="ERROR" />
+    <logger name="java.sql.Statement" level="ERROR" />
+    <logger name="java.sql.PreparedStatement" level="ERROR" />
+    <logger name="java.sql.ResultSet" level="ERROR" />
+    <logger name="java.sql.CallableStatement" level="ERROR" />
+
+    <root level="INFO">
+        <appender-ref ref="consoleLog" />
+    </root>
+</configuration> -->
+
