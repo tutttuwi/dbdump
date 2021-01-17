@@ -1,7 +1,7 @@
 
 # :arrow_down:dbdump
 
-this is management app starter made using spring-boot framework.
+this is dbdump made using spring batch.
 
 ## :eyes:OVERVIEW
 
