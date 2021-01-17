@@ -1,7 +1,7 @@
 
 # :arrow_down:dbdump
 
-this is dbdump made using spring batch.
+this is batch project exporting RDBMS data made using spring batch.
 
 ## :eyes:OVERVIEW
 
