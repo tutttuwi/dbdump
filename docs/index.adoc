@@ -1,0 +1,32 @@
+// :stylesdir: assets/css
+// :stylesheet: asciidoc-style.css
+:imagesdir: assets/img
+:icon: font
+
+= DOCUMENT
+
+== REQUIREMENTS
+
+[format="csv", options="header"]
+|===
+item,value,description
+OS,windows,target for windows OS
+IDE,Eclipse,
+Java version,OpenJDK11,
+|===
+
+== SETUP
+
+Please refer :
+link:setup.adoc[HOW TO SETUP PROJECT]
+
+== CUSTOMIZE
+
+Please refer :
+link:customize.adoc[HOW TO CUSTOMIZE PROJECT]
+
+== TEST
+
+Please refer :
+link:test.adoc[HOW TO TEST PROJECT]
+

@@ -1,0 +1,35 @@
+:imagesdir: assets/img
+
+= SETUP
+
+== 1. Install eclipse (pleiades)
+
+* Access and chose any version you want.
+** <https://mergedoc.osdn.jp/>
+
+== 2. Get Open JDK
+
+* Access and download <https://jdk.java.net/archive/>
+** version `11 GA (build 11+28)`
+
+* you should make your own directory to put jdk, and put jdk.
+
+== 3. Clone this project
+
+[source,bash]
+----
+cd [your directory]
+git clone https://github.com/tutttuwi/springboot-management-starter.git
+----
+
+== 4. Gladle Wrapper
+
+[source,bash]
+----
+cd [clone project directory]
+
+gradlew build -Dorg.gradle.java.home="openjdk11 directory where you just put"
+
+gradlew dist -Dorg.gradle.java.home="openjdk11 directory where you just put"
+
+----

@@ -17,7 +17,9 @@ java -cp .\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   -Ddbdump.dbpropdir=.\\resources\\prop ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0010.AppConfig0010 dbDumpJob ^
-  outputDir=%date_str%_%time_str%  execSqlList=.\resources\sql\execSqlList.txt
+  outputDir=%date_str%_%time_str%  execSqlList=.\resources\sql\execSqlList.txt ^
+  charSplitConma= charSplitDoubleQuoted= ^
+  charSplitCr=NONE charSplitLf=NONE charSplitCrLf=NONE
 
 
 echo Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°Å°
