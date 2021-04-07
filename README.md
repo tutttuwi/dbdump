@@ -15,6 +15,7 @@ please see below about Architecture:
 
 - clone this project
   - `git clone https://github.com/tutttuwi/dbdump.git`
+- Please refer to this page to set it up. [page](./docs/setup.adoc)
 - copy `dist/DBDUMP` into directory you want to put.
 - edit `DBDUMP/resources/prop/application.properties`
   - for connection settings here.

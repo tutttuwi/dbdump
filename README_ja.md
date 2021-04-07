@@ -15,6 +15,7 @@
 
 - プロジェクトをクローン
   - `git clone https://github.com/tutttuwi/dbdump.git`
+- このページを見ながらセットアップしてください [page](./docs/setup.adoc)
 - `dist/DBDUMP` をあなたの好きなディレクトリにコピーしてください
 - `DBDUMP/resources/prop/application.properties` を編集してください
   - DBコネクション設定がここに記述されています。

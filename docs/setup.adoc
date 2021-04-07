@@ -34,7 +34,7 @@ gradlew dist -Dorg.gradle.java.home="openjdk11 directory where you just put"
 
 ----
 
-== 5. IDE Execution Settings
+== 5. [Optional] IDE Execution Settings
 
 === MAIN
 
