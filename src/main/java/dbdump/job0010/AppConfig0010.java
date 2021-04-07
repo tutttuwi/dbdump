@@ -10,16 +10,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.context.annotation.Configuration;
-
 import dbdump.common.listener.JobExecutionLoggingListener;
 import dbdump.common.validator.JobParametersSampleValidator;
 
 @Configuration
 @EnableBatchProcessing
-@ComponentScans({
-    @ComponentScan("dbdump.common"),
-    @ComponentScan("dbdump.job0010")
-})
+@ComponentScans({@ComponentScan("dbdump.common"), @ComponentScan("dbdump.job0010")})
 public class AppConfig0010 {
 
     @Autowired
@@ -36,17 +32,12 @@ public class AppConfig0010 {
 
     @Bean
     public Job dbDumpJob(Step dbDumpStep) {
-        return jobBuilderFactory.get("dbDumpStepJob")
-//                .validator(jobParametersSampleValidator)
-                .start(dbDumpStep)
-                .listener(jobExecutionLoggingListener)
-                .build();
+        return jobBuilderFactory.get("dbDumpStepJob").validator(jobParametersSampleValidator)
+                .start(dbDumpStep).listener(jobExecutionLoggingListener).build();
     }
 
     @Bean
     public Step dbDumpStep() {
-        return stepBuilderFactory.get("dbDumpStep")
-                .tasklet(dbDumpTasklet)
-                .build();
+        return stepBuilderFactory.get("dbDumpStep").tasklet(dbDumpTasklet).build();
     }
 }

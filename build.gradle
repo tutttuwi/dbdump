@@ -1,7 +1,7 @@
 plugins {
-  id 'com.github.johnrengelman.shadow' version '5.0.0'
-  id 'io.spring.dependency-management' version '1.0.10.RELEASE'
-  id 'java'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+    id 'io.spring.dependency-management' version '1.0.10.RELEASE'
+    id 'java'
 }
 
 compileJava.options.encoding = 'UTF-8'
@@ -13,51 +13,61 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
 configurations {
-  compileOnly {
-    extendsFrom annotationProcessor
-  }
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 ext {
-  set('snippetsDir', file("build/generated-snippets"))
+    set('snippetsDir', file("build/generated-snippets"))
 }
 
 dependencies {
-  compileOnly 'org.projectlombok:lombok:1.18.10'
-  annotationProcessor 'org.projectlombok:lombok:1.18.10'
-  implementation 'org.slf4j:slf4j-api:1.7.25'
-  implementation 'org.slf4j:slf4j-simple:1.7.25'
+    compileOnly 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
 
-  compile group: 'org.springframework.batch', name: 'spring-batch-core', version: '4.2.4.RELEASE'
-  compileOnly 'org.projectlombok:lombok'
+    compile group: 'org.springframework.batch', name: 'spring-batch-core', version: '4.2.4.RELEASE'
+    compileOnly 'org.projectlombok:lombok'
 
-  // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
-  compile group: 'org.springframework', name: 'spring-jdbc', version: '5.2.9.RELEASE'
+    // https://mvnrepository.com/artifact/org.springframework/spring-jdbc
+    compile group: 'org.springframework', name: 'spring-jdbc', version: '5.2.9.RELEASE'
 
-  // --------------------------------------------------
-  // You can use your platform.
-  // --------------------------------------------------
-  // runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
-  // runtimeOnly 'com.oracle.database.jdbc:ojdbc8'
-  // runtimeOnly 'mysql:mysql-connector-java'
-  // --------------------------------------------------
-  compile group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
+    // --------------------------------------------------
+    // You can use your platform.
+    // --------------------------------------------------
+    // https://mvnrepository.com/artifact/com.microsoft.sqlserver/mssql-jdbc
+    implementation group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '9.2.1.jre11'
+    // https://mvnrepository.com/artifact/com.oracle.database.jdbc/ojdbc8
+    implementation group: 'com.oracle.database.jdbc', name: 'ojdbc8', version: '21.1.0.0'
+    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.23'
+    // --------------------------------------------------
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.2.16'
 
-  annotationProcessor 'org.projectlombok:lombok'
-  compile("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
+    // https://mvnrepository.com/artifact/com.h2database/h2
+    implementation group: 'com.h2database', name: 'h2', version: '1.4.200'
+
+    // FLYWAY SETTINGS
+    //https://mvnrepository.com/artifact/org.flywaydb/flyway-core
+    compile group: 'org.flywaydb', name: 'flyway-core', version: '6.4.4'
+
+    annotationProcessor 'org.projectlombok:lombok'
+    compile("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
 }
 
 test {
-  outputs.dir snippetsDir
-  useJUnitPlatform()
+    outputs.dir snippetsDir
+    useJUnitPlatform()
 }
 
 task dist(group:'dbdump',type:Copy,dependsOn: shadowJar) {
-  from 'build/libs'
-  into 'dist/DBDUMP/resources/lib'
-  include('*.jar')
+    from 'build/libs'
+    into 'dist/DBDUMP/resources/lib'
+    include('*.jar')
 }

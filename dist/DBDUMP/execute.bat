@@ -12,9 +12,10 @@ set date_str=%date:~-10,4%%date:~-5,2%%date:~-2,2%
 rem 現在時刻（HHMMSS）の取得
 set time_str=%time: =0%
 set time_str=%time_str:~0,2%%time_str:~3,2%%time_str:~6,2%
+rem 現在ディレクトリの取得
+set current_dir=%~dp0
 
-java -cp .\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
-  -Ddbdump.dbpropdir=.\\resources\\prop ^
+java -cp %current_dir%resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0010.AppConfig0010 dbDumpJob ^
   outputDir=%date_str%_%time_str%  execSqlList=.\resources\sql\execSqlList.txt ^

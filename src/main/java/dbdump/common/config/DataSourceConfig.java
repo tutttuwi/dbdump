@@ -1,7 +1,6 @@
 package dbdump.common.config;
 
 import javax.sql.DataSource;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
@@ -22,6 +21,10 @@ public class DataSourceConfig {
 
     private final DbPropBundle prop = new DbPropBundle();
 
+    /**
+     * MEMO: DataSourceをDI対象から除去することでSpringBoot標準テーブルの作成を回避.<br/>
+     * 独自のデータソースを作成する
+     */
     public DataSource driverManagerDataSource() {
         DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
         driverManagerDataSource.setDriverClassName(prop.getDriverClassName());
@@ -30,14 +33,17 @@ public class DataSourceConfig {
         driverManagerDataSource.setPassword(prop.getPassword());
         return driverManagerDataSource;
     }
+
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
         return new NamedParameterJdbcTemplate(dataSourceTransactionManager().getDataSource());
     }
+
     @Bean
     public JdbcTemplate jdbcTemplate() {
         return new JdbcTemplate(dataSourceTransactionManager().getDataSource());
     }
+
     @Bean
     public DataSourceTransactionManager dataSourceTransactionManager() {
         return new DataSourceTransactionManager(driverManagerDataSource());

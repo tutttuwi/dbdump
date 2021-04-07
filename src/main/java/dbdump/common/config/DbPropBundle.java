@@ -1,18 +1,17 @@
 package dbdump.common.config;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Paths;
 import java.util.Locale;
-import java.util.MissingResourceException;
 import java.util.ResourceBundle;
-
 import org.springframework.context.annotation.Configuration;
-
 import lombok.Getter;
 
+/**
+ * DataSource管理用バンドルクラス. <br/>
+ * SpringBatch標準の管理テーブルの使用を避けたので本クラスでコネクション管理
+ *
+ * @author Tomo
+ *
+ */
 @Configuration
 @Getter
 public class DbPropBundle {
@@ -23,15 +22,7 @@ public class DbPropBundle {
     private String driverClassName;
 
     DbPropBundle() {
-        ResourceBundle rb;
-        try {
-            File dir = Paths.get(System.getProperty("dbdump.dbpropdir")).toFile();
-            URLClassLoader urlLoader = new URLClassLoader(new URL[]{dir.toURI().toURL()});
-            rb = ResourceBundle.getBundle("application", Locale.getDefault(), urlLoader);
-        } catch (MissingResourceException | MalformedURLException e) {
-            e.printStackTrace();
-            return;
-        }
+        ResourceBundle rb = ResourceBundle.getBundle("application", Locale.getDefault());
         this.url = rb.getString("spring.datasource.url");
         this.username = rb.getString("spring.datasource.username");
         this.password = rb.getString("spring.datasource.password");

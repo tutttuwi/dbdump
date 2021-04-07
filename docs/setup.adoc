@@ -33,3 +33,22 @@ gradlew build -Dorg.gradle.java.home="openjdk11 directory where you just put"
 gradlew dist -Dorg.gradle.java.home="openjdk11 directory where you just put"
 
 ----
+
+== 5. IDE Execution Settings
+
+=== MAIN
+
+project: `[anything you like]`
+
+main class: org.springframework.batch.core.launch.support.CommandLineJobRunner
+
+image::4-4-2021-02-00-57-AM.png[] 
+
+
+=== ARGS
+
+- PROGRAM ARGS
+
+dbdump.job0010.AppConfig0010 dbDumpJob outputDir=.\\bin\\output execSqlList=.\\src\\main\\resources\\sql\\execSqlList.txt
+
+image::4-4-2021-03-15-54-AM.png[] 
