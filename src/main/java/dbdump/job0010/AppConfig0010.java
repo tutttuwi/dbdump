@@ -11,6 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScans;
 import org.springframework.context.annotation.Configuration;
 import dbdump.common.listener.JobExecutionLoggingListener;
+import dbdump.common.listener.StepExecutionLoggingListener;
 import dbdump.common.validator.JobParametersSampleValidator;
 
 @Configuration
@@ -28,6 +29,8 @@ public class AppConfig0010 {
     @Autowired
     private JobExecutionLoggingListener jobExecutionLoggingListener;
     @Autowired
+    private StepExecutionLoggingListener stepExecutionLoggingListener;
+    @Autowired
     private JobParametersSampleValidator jobParametersSampleValidator;
 
     @Bean
@@ -38,6 +41,7 @@ public class AppConfig0010 {
 
     @Bean
     public Step dbDumpStep() {
-        return stepBuilderFactory.get("dbDumpStep").tasklet(dbDumpTasklet).build();
+        return stepBuilderFactory.get("dbDumpStep").tasklet(dbDumpTasklet)
+                .listener(stepExecutionLoggingListener).build();
     }
 }

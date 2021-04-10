@@ -68,13 +68,13 @@ public class DbDumpTasklet implements Tasklet {
                 Files.newBufferedReader(Paths.get(execSqlList), Charset.forName("MS932")));) {
             BufferedWriter bw = null;
             // 引数で渡す
-            System.out.println(outputDir);
+            log.info("ファイル出力先ディレクトリ [{}] ", outputDir);
             if (Files.notExists(Paths.get(outputDir))) {
                 Files.createDirectory(Paths.get(outputDir));
             }
             String sqlLine = "";
             while ((sqlLine = br.readLine()) != null) {
-                System.out.println(sqlLine);
+                log.info("実行SQL行：{}", sqlLine);
                 if (StringUtils.isEmpty(sqlLine)) {
                     continue;
                 }

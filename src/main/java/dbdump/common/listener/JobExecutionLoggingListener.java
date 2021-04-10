@@ -13,14 +13,13 @@ public class JobExecutionLoggingListener implements JobExecutionListener {
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
-        System.out.println("JobExecutionLoggingListener#beforeJob");
         logger.info("job started. [JobName:{}]", jobExecution.getJobInstance().getJobName());
     }
 
     @Override
     public void afterJob(JobExecution jobExecution) {
-        System.out.println("JobExecutionLoggingListener#afterJob");
-        logger.info("job finished.[JobName:{}][ExitStatus:{}]", jobExecution.getJobInstance().getJobName(),
+        logger.info("job finished.[JobName:{}][ExitStatus:{}]",
+                jobExecution.getJobInstance().getJobName(),
                 jobExecution.getExitStatus().getExitCode());
     }
 }
