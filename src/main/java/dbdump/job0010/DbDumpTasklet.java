@@ -100,13 +100,13 @@ public class DbDumpTasklet implements Tasklet {
                     for (int i = 0; i < colnames.length; i++) {
                         // ダブルクォーテーションで囲み＆エスケープ処理
                         String data = String.valueOf(sqlRs.getObject(colnames[i]));
-            // @formatter:off
-            data = data.replaceAll(",", strSc)
-                .replaceAll("\"", strSdq)
-                .replaceAll("\r", strScr)
-                .replaceAll("\n", strSlf)
-                .replaceAll("\r\n", strScrlf);
-            // @formatter:on
+                        // @formatter:off
+                        data = data.replaceAll(",", strSc)
+                                .replaceAll("\"", strSdq)
+                                .replaceAll("\r", strScr)
+                                .replaceAll("\n", strSlf)
+                                .replaceAll("\r\n", strScrlf);
+                        // @formatter:on
                         dataList.add("\"" + data + "\"");
                     }
                     bw.append(String.join(",", dataList));
