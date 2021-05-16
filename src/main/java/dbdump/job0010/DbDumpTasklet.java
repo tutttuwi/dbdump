@@ -50,6 +50,9 @@ public class DbDumpTasklet implements Tasklet {
     @Value("#{jobParameters[charSplitCrLf]}")
     String strScrlf;
 
+    @Value("#{jobParameters[encode]}")
+    String encode;
+
     private static final String TAG_DOUBLE_QUOTED = "＜DOUBLE_QUOTED＞";
     private static final String TAG_CONMA = "＜CONMA＞";
     private static final String TAG_CR = "＜CR＞";
@@ -65,7 +68,7 @@ public class DbDumpTasklet implements Tasklet {
         setup();
 
         try (LineNumberReader br = new LineNumberReader(
-                Files.newBufferedReader(Paths.get(execSqlList), Charset.forName("MS932")));) {
+                Files.newBufferedReader(Paths.get(execSqlList), Charset.forName(encode)));) {
             BufferedWriter bw = null;
             // 引数で渡す
             log.info("ファイル出力先ディレクトリ [{}] ", outputDir);
@@ -85,7 +88,7 @@ public class DbDumpTasklet implements Tasklet {
                     log.warn("行数：{} ファイル名：{} SQL文：{}", br.getLineNumber(), outputFilename, sql);
                     continue;
                 }
-                bw = Files.newBufferedWriter(Paths.get(outFullPath), Charset.forName("MS932"),
+                bw = Files.newBufferedWriter(Paths.get(outFullPath), Charset.forName(encode),
                         StandardOpenOption.CREATE);
                 SqlRowSet sqlRs = jdbcTemplate.queryForRowSet(sql);
                 String[] colnames = sqlRs.getMetaData().getColumnNames();
@@ -147,6 +150,11 @@ public class DbDumpTasklet implements Tasklet {
             strScrlf = TAG_CRLF;
         } else if (strScrlf.equals(SPLIT_NONE)) {
             strScrlf = "";
+        }
+
+        if (StringUtils.isEmpty(encode)) {
+            encode = "UTF-8";
+            // 文字コードが指定された場合、指定された文字コードを使用する
         }
     }
 }
