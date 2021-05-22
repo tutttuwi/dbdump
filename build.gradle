@@ -57,6 +57,12 @@ dependencies {
     //https://mvnrepository.com/artifact/org.flywaydb/flyway-core
     compile group: 'org.flywaydb', name: 'flyway-core', version: '6.4.4'
 
+    // POI
+    // https://mvnrepository.com/artifact/org.apache.poi/poi
+    implementation group: 'org.apache.poi', name: 'poi', version: '5.0.0'
+    // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
+
     annotationProcessor 'org.projectlombok:lombok'
     compile("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
 }
