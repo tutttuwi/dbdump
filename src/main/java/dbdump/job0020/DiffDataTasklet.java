@@ -398,7 +398,7 @@ public class DiffDataTasklet implements Tasklet {
                     }
                     String dKeyValue = "";
                     for (Integer kc : keyColList) {
-                        dKeyValue = dstRow.getCell(kc).getStringCellValue();
+                        dKeyValue += dstRow.getCell(kc).getStringCellValue();
                     }
                     if (Objects.equals(keyValue, dKeyValue)) {
                         hitDiffFlg = true;
@@ -457,7 +457,7 @@ public class DiffDataTasklet implements Tasklet {
                 }
                 String dKeyValue = "";
                 for (Integer kc : keyColList) {
-                    dKeyValue = dstRow.getCell(kc).getStringCellValue();
+                    dKeyValue += dstRow.getCell(kc).getStringCellValue();
                 }
                 if (dKeyValue == "") {
                     continue;
