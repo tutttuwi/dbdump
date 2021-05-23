@@ -85,6 +85,13 @@ public class DiffDataTasklet implements Tasklet {
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
             throws Exception {
+        // TODO: メモ
+        // [x] 比較文字列を大文字小文字で判断しないようにする
+        // [x] バッチに引数を渡して比較したい
+        // [ ] エラー処理を正確にする
+        // [ ] 処理中をわかりやすくする
+        // [x] 拡張子の取得方法見直す
+
         // 初期設定
         setup();
         // 差分比較ファイル名
@@ -242,10 +249,19 @@ public class DiffDataTasklet implements Tasklet {
         log.info("開始列:{}", firstCellNum);
         log.info("最後列:{}", lastCellNum);
         for (int rn = firstRowNum; rn <= lastRowNum; rn++) {
-            Row row = tocSheet.getRow(rn);
-            for (int cn = firstCellNum; cn < lastCellNum; cn++) {
-                Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                cell.setCellStyle(style);
+            if (rn == firstRowNum) {
+                // ヘッダー行だけスタイルを変える
+                Row row = tocSheet.getRow(rn);
+                for (int cn = firstCellNum; cn < lastCellNum; cn++) {
+                    Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    cell.setCellStyle(styleHeader);
+                }
+            } else {
+                Row row = tocSheet.getRow(rn);
+                for (int cn = firstCellNum; cn < lastCellNum; cn++) {
+                    Cell cell = row.getCell(cn, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    cell.setCellStyle(style);
+                }
             }
         }
 
@@ -285,12 +301,19 @@ public class DiffDataTasklet implements Tasklet {
                     r.getCell(0, MissingCellPolicy.CREATE_NULL_AS_BLANK).setCellStyle(styleHeader);
                     r.getCell(1, MissingCellPolicy.CREATE_NULL_AS_BLANK).setCellStyle(styleHeader);
                     r.getCell(2, MissingCellPolicy.CREATE_NULL_AS_BLANK).setCellStyle(styleHeader);
-                }
-                String[] cols = line.split(",");
-                for (String cv : cols) {
-                    Cell cl = r.createCell(colnum++);
-                    cl.setCellValue(cv);
-                    cl.setCellStyle(style);
+                    String[] cols = line.split(",");
+                    for (String cv : cols) {
+                        Cell cl = r.createCell(colnum++);
+                        cl.setCellValue(cv);
+                        cl.setCellStyle(styleHeader);
+                    }
+                } else {
+                    String[] cols = line.split(",");
+                    for (String cv : cols) {
+                        Cell cl = r.createCell(colnum++);
+                        cl.setCellValue(cv);
+                        cl.setCellStyle(style);
+                    }
                 }
                 colnum = DIFF_START_COL; // 列位置初期化
             }
@@ -345,12 +368,19 @@ public class DiffDataTasklet implements Tasklet {
                     r.getCell(0, MissingCellPolicy.CREATE_NULL_AS_BLANK).setCellStyle(styleHeader);
                     r.getCell(1, MissingCellPolicy.CREATE_NULL_AS_BLANK).setCellStyle(styleHeader);
                     r.getCell(2, MissingCellPolicy.CREATE_NULL_AS_BLANK).setCellStyle(styleHeader);
-                }
-                String[] cols = dline.split(",");
-                for (String cv : cols) {
-                    Cell cl = r.createCell(colnum++);
-                    cl.setCellValue(cv);
-                    cl.setCellStyle(style);
+                    String[] cols = dline.split(",");
+                    for (String cv : cols) {
+                        Cell cl = r.createCell(colnum++);
+                        cl.setCellValue(cv);
+                        cl.setCellStyle(styleHeader);
+                    }
+                } else {
+                    String[] cols = dline.split(",");
+                    for (String cv : cols) {
+                        Cell cl = r.createCell(colnum++);
+                        cl.setCellValue(cv);
+                        cl.setCellStyle(style);
+                    }
                 }
                 colnum = DIFF_START_COL; // 列位置初期化
             }
@@ -366,15 +396,21 @@ public class DiffDataTasklet implements Tasklet {
                 if (rn == srcStartRowNum) {
                     // ヘッダー行なのでキーカラムを探す
                     for (int i = fstCol; i < endCol; i++) {
-                        List<String> pkNameList =
-                                tablePkMap.get(srcPath.getFileName().toString().split("\\.")[0]); // 拡張子を排除
+                        String srcPathStr = srcPath.getFileName().toString();
+                        String srcPathStrExdEx =
+                                srcPathStr.substring(0, srcPathStr.lastIndexOf("."));
+                        if (!tablePkMap.containsKey(srcPathStrExdEx)) {
+                            break; // キー情報が見つからない
+                        }
+                        List<String> pkNameList = tablePkMap.get(srcPathStrExdEx); // 拡張子を排除
                         Cell c = srcRow.getCell(i);
                         if (pkNameList.contains(c.getStringCellValue())) {
                             keyColList.add(i); // キーカラムの列位置を追加
                             c.setCellStyle(stylePk);
                         }
                     }
-                    rn++; // ヘッダー行は比較対象に入れたくないため次の行へ
+                    // １行目が処理できず、ずれてしまうためコメントアウト
+                    // rn++; // ヘッダー行は比較対象に入れたくないため次の行へ
                 }
                 if (keyColList.isEmpty()) {
                     log.warn("キーカラムが見つからないためスキップします。ファイル名：{}", srcPath.getFileName().toString());
@@ -394,13 +430,14 @@ public class DiffDataTasklet implements Tasklet {
                             Cell c = dstRow.getCell(kc);
                             c.setCellStyle(stylePk);
                         }
-                        drn++; // ヘッダー行は比較対象に入れたくないため次の行へ
+                        // １行目が処理できず、ずれてしまうためコメントアウト
+                        // drn++; // ヘッダー行は比較対象に入れたくないため次の行へ
                     }
                     String dKeyValue = "";
                     for (Integer kc : keyColList) {
                         dKeyValue += dstRow.getCell(kc).getStringCellValue();
                     }
-                    if (Objects.equals(keyValue, dKeyValue)) {
+                    if (Objects.nonNull(keyValue) && keyValue.equalsIgnoreCase(dKeyValue)) {
                         hitDiffFlg = true;
                         // 比較処理
                         for (int i = fstCol; i < endCol; i++) {
@@ -417,8 +454,12 @@ public class DiffDataTasklet implements Tasklet {
                                 // 差分ありと記載
                                 srcRow.getCell(2, MissingCellPolicy.CREATE_NULL_AS_BLANK)
                                         .setCellValue("差分あり");
+                                srcRow.getCell(2, MissingCellPolicy.CREATE_NULL_AS_BLANK)
+                                        .setCellStyle(styleDiff);
                                 dstRow.getCell(2, MissingCellPolicy.CREATE_NULL_AS_BLANK)
                                         .setCellValue("差分あり");
+                                dstRow.getCell(2, MissingCellPolicy.CREATE_NULL_AS_BLANK)
+                                        .setCellStyle(styleDiff);
                             }
                         }
                         break; // 比較できた行が存在したらループを抜ける
@@ -434,6 +475,7 @@ public class DiffDataTasklet implements Tasklet {
                                 srcRow.getCell(1).getStringCellValue())) {
                             Cell c3 = row.getCell(3, MissingCellPolicy.CREATE_NULL_AS_BLANK);
                             c3.setCellValue("差分あり");
+                            c3.setCellStyle(styleDiff);
                         }
                     }
                     tocSheet.getRow(rownum);
@@ -469,7 +511,7 @@ public class DiffDataTasklet implements Tasklet {
                     for (Integer kc : keyColList) {
                         sKeyValue += srcRow.getCell(kc).getStringCellValue();
                     }
-                    if (Objects.equals(dKeyValue, sKeyValue)) {
+                    if (Objects.nonNull(dKeyValue) && dKeyValue.equalsIgnoreCase(sKeyValue)) {
                         isEqRow = true;
                         break;
                     }
@@ -546,6 +588,11 @@ public class DiffDataTasklet implements Tasklet {
         try (LineNumberReader lnr = new LineNumberReader(new FileReader(tableKeyFile))) {
             String line = "";
             while ((line = lnr.readLine()) != null) {
+                String[] ar = line.split(":");
+                if (ar.length != 2) {
+                    log.error("PK設定ファイル書式誤り！");
+                    throw new Exception();
+                }
                 String tableName = line.split(":")[0];
                 String pkArray = line.split(":")[1];
                 List<String> list = Arrays.asList(pkArray.split(","));

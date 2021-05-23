@@ -8,6 +8,24 @@ echo ■■■■■■■■■■■■■■■■■■■■
 
 @echo off
 
+rem 比較元ディレクトリ設定
+if "%1" EQU "" (
+  set srcDir=./diff/before
+) else (
+  set srcDir=%1
+)
+rem 比較先ディレクトリ設定
+if "%2" EQU "" (
+  set dstDir=./diff/after
+) else (
+  set dstDir=%2
+)
+rem テーブルキーファイル設定
+set tableKeyFile=.\resources\prop\tablekey.conf
+
+rem JAVA_HOME設定
+rem set PATH=[jdk11 directory you downloaded];%PATH%
+
 rem ==============================
 rem ＜説明＞指定引数
 rem ------------------------------
@@ -16,11 +34,18 @@ rem dstDir       :比較先ディレクトリ
 rem tableKeyFile :テーブルPK設定ファイル
 rem diffFileDir  :比較結果ファイル出力ディレクトリ
 rem ==============================
+echo "=================================================="
+echo "＜設定値＞"
+echo "--------------------------------------------------"
+echo "比較元ディレクトリ : " %srcDir%
+echo "比較先ディレクトリ : " %dstDir%
+echo "テーブルキーファイル : " %tableKeyFile%
+echo "=================================================="
 java -cp %CD%\resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0020.AppConfig0020 diffDataJob ^
-  srcDir=./diff/before dstDir=./diff/after ^
-  tableKeyFile=.\resources\prop\tablekey.conf diffFileDir=./ 
+  srcDir=%srcDir% dstDir=%dstDir% ^
+  tableKeyFile=%tableKeyFile% diffFileDir=./ 
 
 
 echo ■■■■■■■■■■■■■■■■■■■■
