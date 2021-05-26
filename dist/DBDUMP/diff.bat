@@ -22,6 +22,8 @@ if "%2" EQU "" (
 )
 rem テーブルキーファイル設定
 set tableKeyFile=.\resources\prop\tablekey.conf
+rem 入力ファイル文字エンコーディング
+set inputFileEncode=UTF-8
 
 rem JAVA_HOME設定
 rem set PATH=[jdk11 directory you downloaded];%PATH%
@@ -33,19 +35,21 @@ rem srcDir       :比較元ディレクトリ
 rem dstDir       :比較先ディレクトリ
 rem tableKeyFile :テーブルPK設定ファイル
 rem diffFileDir  :比較結果ファイル出力ディレクトリ
+rem inputFileEncode  :入力ファイル文字エンコーディング
 rem ==============================
-echo "=================================================="
-echo "＜設定値＞"
-echo "--------------------------------------------------"
-echo "比較元ディレクトリ : " %srcDir%
-echo "比較先ディレクトリ : " %dstDir%
-echo "テーブルキーファイル : " %tableKeyFile%
-echo "=================================================="
+echo ==================================================
+echo ＜設定値＞
+echo --------------------------------------------------
+echo 比較元ディレクトリ :  %srcDir%
+echo 比較先ディレクトリ :  %dstDir%
+echo テーブルキーファイル :  %tableKeyFile%
+echo ==================================================
 java -cp %CD%\resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0020.AppConfig0020 diffDataJob ^
   srcDir=%srcDir% dstDir=%dstDir% ^
-  tableKeyFile=%tableKeyFile% diffFileDir=./ 
+  tableKeyFile=%tableKeyFile% diffFileDir=./ ^
+  inputFileEncode=%inputFileEncode%
 
 
 echo ■■■■■■■■■■■■■■■■■■■■

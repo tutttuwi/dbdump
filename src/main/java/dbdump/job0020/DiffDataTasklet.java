@@ -3,6 +3,7 @@ package dbdump.job0020;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.LineNumberReader;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,6 +68,9 @@ public class DiffDataTasklet implements Tasklet {
     String tableKeyFile;
     @Value("#{jobParameters[diffFileDir]}")
     String diffFileDir;
+
+    @Value("#{jobParameters[inputFileEncode]}")
+    String inputFileEncode;
 
     private Map<String, List<String>> tablePkMap = new HashMap<>();
 
@@ -279,7 +283,8 @@ public class DiffDataTasklet implements Tasklet {
         for (Path srcPath : srcPathList) {
             log.info("比較元ファイルフルパス：{}", srcPath.toAbsolutePath().toString());
             LineNumberReader lnr =
-                    new LineNumberReader(new FileReader(srcPath.toAbsolutePath().toString()));
+                    new LineNumberReader(new FileReader(srcPath.toAbsolutePath().toString(),
+                            Charset.forName(inputFileEncode)));
             String line = "";
             int srcStartRowNum = rownum;
             while ((line = lnr.readLine()) != null) {
@@ -346,7 +351,8 @@ public class DiffDataTasklet implements Tasklet {
             // 比較先ファイル書込処理
             log.info("比較先ファイルフルパス：{}", dstPath.toAbsolutePath().toString());
             LineNumberReader dlnr =
-                    new LineNumberReader(new FileReader(dstPath.toAbsolutePath().toString()));
+                    new LineNumberReader(new FileReader(dstPath.toAbsolutePath().toString(),
+                            Charset.forName(inputFileEncode)));
             String dline = "";
             int dstStartRowNum = rownum;
             while ((dline = dlnr.readLine()) != null) {
@@ -562,6 +568,9 @@ public class DiffDataTasklet implements Tasklet {
             log.error("テーブルPK設定ファイルが指定されていません。");
             throw new Exception();
             // tableKeyFile = "./dist/DBDUMP/resources/prop/tablekey.conf";
+        }
+        if (StringUtils.isEmpty(inputFileEncode)) {
+            inputFileEncode = "UTF-8";
         }
         // テーブルPKマップオブジェクト設定
         tablePkMap = getTableKeyList();
