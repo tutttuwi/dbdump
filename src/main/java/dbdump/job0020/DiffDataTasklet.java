@@ -532,11 +532,11 @@ public class DiffDataTasklet implements Tasklet {
             }
         }
 
-        // 列幅自動調整
-        for (int col = 0; col < diffSheet.getLastRowNum(); col++) {
-            diffSheet.autoSizeColumn(col);
-            // diffSheet.setColumnWidth(col, diffSheet.getColumnWidth(col) + 1000);
-        }
+        // 列幅自動調整 (列数が多いとかなり時間がかかるため列幅自動調整をコメントアウト)
+        // for (int col = 0; col < diffSheet.getLastRowNum(); col++) {
+        // diffSheet.autoSizeColumn(col);
+        // diffSheet.setColumnWidth(col, diffSheet.getColumnWidth(col) + 1000);
+        // }
 
         workbook.write(new FileOutputStream(diffFileDir + filename));
         workbook.close();

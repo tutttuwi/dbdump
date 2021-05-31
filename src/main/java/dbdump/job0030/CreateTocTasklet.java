@@ -157,7 +157,7 @@ public class CreateTocTasklet implements Tasklet {
         // データ行生成
         // ==============================
         // 初期設定
-        // 比較元処理
+        // ファイル処理
         Path srcDirPath = Paths.get(srcDir);
         List<Path> srcPathList = Files.list(srcDirPath).sorted(Comparator.comparing(Path::toString))
                 .collect(Collectors.toList());
@@ -235,7 +235,7 @@ public class CreateTocTasklet implements Tasklet {
         int rownum = 1;
         int colnum = DATA_START_COL;
         for (Path srcPath : srcPathList) {
-            log.info("比較元ファイルフルパス：{}", srcPath.toAbsolutePath().toString());
+            log.info("ファイルフルパス：{}", srcPath.toAbsolutePath().toString());
             LineNumberReader lnr =
                     new LineNumberReader(new FileReader(srcPath.toAbsolutePath().toString(),
                             Charset.forName(inputFileEncode)));
@@ -276,11 +276,11 @@ public class CreateTocTasklet implements Tasklet {
 
         }
 
-        // 列幅自動調整
-        for (int col = 0; col < dataSheet.getLastRowNum(); col++) {
-            dataSheet.autoSizeColumn(col);
-            // diffSheet.setColumnWidth(col, diffSheet.getColumnWidth(col) + 1000);
-        }
+        // 列幅自動調整 (列数が多いとかなり時間がかかるため列幅自動調整をコメントアウト）
+        // for (int col = 0; col < dataSheet.getLastRowNum(); col++) {
+        // dataSheet.autoSizeColumn(col);
+        // // diffSheet.setColumnWidth(col, diffSheet.getColumnWidth(col) + 1000);
+        // }
 
         workbook.write(new FileOutputStream(tocFileDir + filename));
         workbook.close();
@@ -296,7 +296,7 @@ public class CreateTocTasklet implements Tasklet {
      */
     private void setup() throws Exception {
         if (StringUtils.isEmpty(srcDir)) {
-            log.error("比較元ディレクトリが指定されていません。");
+            log.error("ディレクトリが指定されていません。");
             throw new Exception();
             // srcDir = "./dist/DBDUMP/20210522_210441";
         }
