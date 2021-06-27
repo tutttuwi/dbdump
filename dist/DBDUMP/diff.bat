@@ -20,8 +20,10 @@ if "%2" EQU "" (
 ) else (
   set dstDir=%2
 )
-rem テーブルキーファイル設定
+rem テーブルキー設定ファイル
 set tableKeyFile=.\resources\prop\tablekey.conf
+rem 比較対象外カラム設定ファイル
+set ignoreColumnFile=.\resources\prop\ignoreColumn.conf
 rem 入力ファイル文字エンコーディング
 set inputFileEncode=UTF-8
 
@@ -43,12 +45,15 @@ echo --------------------------------------------------
 echo 比較元ディレクトリ :  %srcDir%
 echo 比較先ディレクトリ :  %dstDir%
 echo テーブルキーファイル :  %tableKeyFile%
+echo 比較対象外カラムファイル :  %ignoreColumnFile%
+echo 入力ファイル文字エンコーディング :  %inputFileEncode%
 echo ==================================================
 java -cp %CD%\resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0020.AppConfig0020 diffDataJob ^
   srcDir=%srcDir% dstDir=%dstDir% ^
   tableKeyFile=%tableKeyFile% diffFileDir=./ ^
+  ignoreColumnFile=%ignoreColumnFile% ^
   inputFileEncode=%inputFileEncode%
 
 

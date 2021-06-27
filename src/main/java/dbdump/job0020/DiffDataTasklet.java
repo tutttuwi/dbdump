@@ -66,13 +66,18 @@ public class DiffDataTasklet implements Tasklet {
 
     @Value("#{jobParameters[tableKeyFile]}")
     String tableKeyFile;
+    @Value("#{jobParameters[ignoreColumnFile]}")
+    String ignoreColumnFile;
     @Value("#{jobParameters[diffFileDir]}")
     String diffFileDir;
 
     @Value("#{jobParameters[inputFileEncode]}")
     String inputFileEncode;
 
+    /** テーブルPKマップ */
     private Map<String, List<String>> tablePkMap = new HashMap<>();
+    /** 差分対象外カラムマップ */
+    private Map<String, List<String>> ignoreColumnMap = new HashMap<>();
 
     // 各種変数設定
     private static final String TOC_NAME = "目次";
@@ -125,6 +130,15 @@ public class DiffDataTasklet implements Tasklet {
         styleDiff.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         styleDiff.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         styleDiff.setFont(font);
+
+        CellStyle styleIgnoreDiff = workbook.createCellStyle();
+        styleIgnoreDiff.setBorderTop(BorderStyle.THIN);
+        styleIgnoreDiff.setBorderRight(BorderStyle.THIN);
+        styleIgnoreDiff.setBorderBottom(BorderStyle.THIN);
+        styleIgnoreDiff.setBorderLeft(BorderStyle.THIN);
+        styleIgnoreDiff.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        styleIgnoreDiff.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        styleIgnoreDiff.setFont(font);
 
         CellStyle stylePk = workbook.createCellStyle();
         stylePk.setBorderTop(BorderStyle.THIN);
@@ -396,6 +410,7 @@ public class DiffDataTasklet implements Tasklet {
 
             // 差分比較処理
             List<Integer> keyColList = new ArrayList<>();
+            List<Integer> ignoreColList = new ArrayList<>();
             for (int rn = srcStartRowNum; rn < srcEndRowNum; rn++) {
                 Row srcRow = diffSheet.getRow(rn);
                 int fstCol = DIFF_START_COL;
@@ -411,9 +426,17 @@ public class DiffDataTasklet implements Tasklet {
                         }
                         List<String> pkNameList = tablePkMap.get(srcPathStrExdEx); // 拡張子を排除
                         Cell c = srcRow.getCell(i);
-                        if (pkNameList.contains(c.getStringCellValue())) {
+                        if (Objects.nonNull(pkNameList)
+                                && pkNameList.contains(c.getStringCellValue())) {
                             keyColList.add(i); // キーカラムの列位置を追加
                             c.setCellStyle(stylePk);
+                        }
+                        List<String> ignoreColNameList = ignoreColumnMap.get(srcPathStrExdEx); // 拡張子を排除
+                        // カラム名の大文字小文字比較を無視したいため、小文字変換した上で比較処理を実施
+                        if (Objects.nonNull(ignoreColNameList) && ignoreColNameList.stream()
+                                .map(s -> s.toLowerCase()).collect(Collectors.toList())
+                                .contains(c.getStringCellValue().toLowerCase())) {
+                            ignoreColList.add(i); // 比較対象外カラムの列位置を追加
                         }
                     }
                     // １行目が処理できず、ずれてしまうためコメントアウト
@@ -453,6 +476,10 @@ public class DiffDataTasklet implements Tasklet {
                             if (Objects.equals(srcCell.getStringCellValue(),
                                     dstCell.getStringCellValue())) {
                                 // 同じ値なので何もしない
+                            } else if (ignoreColList.contains(i)) {
+                                // 比較対象外カラム判定 (差分があるので目立たない色で色付けする)
+                                srcCell.setCellStyle(styleIgnoreDiff);
+                                dstCell.setCellStyle(styleIgnoreDiff);
                             } else {
                                 hasDiffFlg = true; // 1カラムでも差分があればtrue
                                 // 差分があるので色付け
@@ -570,11 +597,18 @@ public class DiffDataTasklet implements Tasklet {
             throw new Exception();
             // tableKeyFile = "./dist/DBDUMP/resources/prop/tablekey.conf";
         }
+        if (StringUtils.isEmpty(ignoreColumnFile)) {
+            log.warn("差分比較対象外カラム設定ファイルが指定されていません。");
+            // throw new Exception();
+            // tableKeyFile = "./dist/DBDUMP/resources/prop/tablekey.conf";
+        }
         if (StringUtils.isEmpty(inputFileEncode)) {
             inputFileEncode = "UTF-8";
         }
         // テーブルPKマップオブジェクト設定
         tablePkMap = getTableKeyList();
+        // 差分対象外カラムマップオブジェクト設定
+        ignoreColumnMap = getIgnoreColumn();
     }
 
     /**
@@ -606,6 +640,36 @@ public class DiffDataTasklet implements Tasklet {
                 String tableName = line.split(":")[0];
                 String pkArray = line.split(":")[1];
                 List<String> list = Arrays.asList(pkArray.split(","));
+                ret.put(tableName, list);
+            }
+        } catch (Exception ex) {
+            throw ex;
+        }
+        return ret;
+    }
+
+    /**
+     * 差分比較対象外カラムマップ取得
+     *
+     * @return
+     * @throws Exception
+     */
+    private Map<String, List<String>> getIgnoreColumn() throws Exception {
+        Map<String, List<String>> ret = new HashMap<>();
+        if (Objects.isNull(ignoreColumnFile)) {
+            return ret;
+        }
+        try (LineNumberReader lnr = new LineNumberReader(new FileReader(ignoreColumnFile))) {
+            String line = "";
+            while ((line = lnr.readLine()) != null) {
+                String[] ar = line.split(":");
+                if (ar.length != 2) {
+                    log.error("差分対象外カラムファイル書式誤り！ {}行目の設定に誤りがあります。", lnr.getLineNumber());
+                    throw new Exception();
+                }
+                String tableName = line.split(":")[0];
+                String ignoreColumnArray = line.split(":")[1];
+                List<String> list = Arrays.asList(ignoreColumnArray.split(","));
                 ret.put(tableName, list);
             }
         } catch (Exception ex) {
