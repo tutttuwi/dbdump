@@ -1,9 +1,11 @@
 package dbdump.job0020;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -297,9 +299,9 @@ public class DiffDataTasklet implements Tasklet {
         int colnum = DIFF_START_COL;
         for (Path srcPath : srcPathList) {
             log.info("比較元ファイルフルパス：{}", srcPath.toAbsolutePath().toString());
-            LineNumberReader lnr =
-                    new LineNumberReader(new FileReader(srcPath.toAbsolutePath().toString(),
-                            Charset.forName(inputFileEncode)));
+            LineNumberReader lnr = new LineNumberReader(new InputStreamReader(
+                    new FileInputStream(new File(srcPath.toAbsolutePath().toString())),
+                    inputFileEncode));
             String line = "";
             int srcStartRowNum = rownum;
             while ((line = lnr.readLine()) != null) {
@@ -344,7 +346,7 @@ public class DiffDataTasklet implements Tasklet {
                 return Objects.equals(p.getFileName().toString(), srcPath.getFileName().toString());
             }).findFirst();
             Path dstPath;
-            if (dstPathFinded.isEmpty()) {
+            if (dstPathFinded.isPresent()) {
                 // 比較先ファイルが存在しない旨を出力して次へ
                 log.info("比較先ファイルが存在しません。 比較元ファイル名：{}", srcPath.getFileName().toString());
                 Row r = diffSheet.createRow(rownum);
@@ -365,9 +367,9 @@ public class DiffDataTasklet implements Tasklet {
             }
             // 比較先ファイル書込処理
             log.info("比較先ファイルフルパス：{}", dstPath.toAbsolutePath().toString());
-            LineNumberReader dlnr =
-                    new LineNumberReader(new FileReader(dstPath.toAbsolutePath().toString(),
-                            Charset.forName(inputFileEncode)));
+            LineNumberReader dlnr = new LineNumberReader(new InputStreamReader(
+                    new FileInputStream(new File(srcPath.toAbsolutePath().toString())),
+                    inputFileEncode));
             String dline = "";
             int dstStartRowNum = rownum;
             while ((dline = dlnr.readLine()) != null) {

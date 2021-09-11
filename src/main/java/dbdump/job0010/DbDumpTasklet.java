@@ -8,6 +8,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -67,6 +70,7 @@ public class DbDumpTasklet implements Tasklet {
         // 初期処理
         setup();
 
+        ExecutorService executor = Executors.newFixedThreadPool(1);
         try (LineNumberReader br = new LineNumberReader(
                 Files.newBufferedReader(Paths.get(execSqlList), Charset.forName(encode)));) {
             BufferedWriter bw = null;
@@ -75,49 +79,25 @@ public class DbDumpTasklet implements Tasklet {
             if (Files.notExists(Paths.get(outputDir))) {
                 Files.createDirectory(Paths.get(outputDir));
             }
+
             String sqlLine = "";
             while ((sqlLine = br.readLine()) != null) {
-                log.info("実行SQL行：{}", sqlLine);
-                if (StringUtils.isEmpty(sqlLine)) {
-                    continue;
-                }
-                String outputFilename = sqlLine.split(":")[0] + ".csv";
-                String outFullPath = String.join("/", new String[] {outputDir, outputFilename});
-                String sql = sqlLine.split(":")[1];
-                if (StringUtils.isEmpty(outputFilename) || StringUtils.isEmpty(sql)) {
-                    log.warn("行数：{} ファイル名：{} SQL文：{}", br.getLineNumber(), outputFilename, sql);
-                    continue;
-                }
-                bw = Files.newBufferedWriter(Paths.get(outFullPath), Charset.forName(encode),
-                        StandardOpenOption.CREATE);
-                SqlRowSet sqlRs = jdbcTemplate.queryForRowSet(sql);
-                String[] colnames = sqlRs.getMetaData().getColumnNames();
-                // カラム名に改行コードやダブルクォーテーションが入っている想定はしていない
-                bw.append(String.join(",", colnames));
-                bw.newLine();
-                while (sqlRs.next()) {
-                    List<String> dataList = new ArrayList<>();
-                    for (int i = 0; i < colnames.length; i++) {
-                        // ダブルクォーテーションで囲み＆エスケープ処理
-                        String data = String.valueOf(sqlRs.getObject(colnames[i]));
-                        // @formatter:off
-                        data = data.replaceAll(",", strSc)
-                                .replaceAll("\"", strSdq)
-                                .replaceAll("\r", strScr)
-                                .replaceAll("\n", strSlf)
-                                .replaceAll("\r\n", strScrlf);
-                        // @formatter:on
-                        dataList.add("\"" + data + "\"");
-                    }
-                    bw.append(String.join(",", dataList));
-                    bw.newLine();
-                }
-                // 書き込み終了（次の行へ）
-                bw.close();
+                // マルチスレッド実行
+                executor.execute(new ExecuteSql(sqlLine, br, bw));
             }
+            // 新規タスクの受付を終了して残ったタスクを継続する．
+            executor.shutdown();
+            try {
+                // 指定時間が経過するか，全タスクが終了するまで処理を停止する．
+                executor.awaitTermination(100, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
             log.error("エラー発生！　メッセージ：{}", e.getMessage());
+        } finally {
         }
         return RepeatStatus.FINISHED;
     }
@@ -156,5 +136,75 @@ public class DbDumpTasklet implements Tasklet {
             encode = "UTF-8";
             // 文字コードが指定された場合、指定された文字コードを使用する
         }
+    }
+
+    class ExecuteSql implements Runnable {
+
+        private String sqlLine;
+        private LineNumberReader br;
+        private BufferedWriter bw;
+
+        public ExecuteSql(String sqlLine, LineNumberReader br, BufferedWriter bw) {
+            this.sqlLine = sqlLine;
+            this.br = br;
+            this.bw = bw;
+        }
+
+        @Override
+        public void run() {
+            // スレッドIDを取得
+            String threadName = Thread.currentThread().getName();
+            long threadID = Thread.currentThread().getId();
+            // log.info("【開始】スレッド名：{} スレッドID：{}", threadName, threadID);
+
+            try {
+                log.info("実行SQL行：{} [{} {}]", sqlLine, threadName, threadID);
+                if (StringUtils.isEmpty(sqlLine)) {
+                    return;
+                }
+
+                String outputFilename = sqlLine.split(":")[0] + ".csv";
+                String outFullPath = String.join("/", new String[] {outputDir, outputFilename});
+                String sql = sqlLine.split(":")[1];
+                if (StringUtils.isEmpty(outputFilename) || StringUtils.isEmpty(sql)) {
+                    log.warn("行数：{} ファイル名：{} SQL文：{}", br.getLineNumber(), outputFilename, sql);
+                    return;
+                }
+                bw = Files.newBufferedWriter(Paths.get(outFullPath), Charset.forName(encode),
+                        StandardOpenOption.CREATE);
+                SqlRowSet sqlRs = jdbcTemplate.queryForRowSet(sql);
+                String[] colnames = sqlRs.getMetaData().getColumnNames();
+                // カラム名に改行コードやダブルクォーテーションが入っている想定はしていない
+                bw.append(String.join(",", colnames));
+                bw.newLine();
+                while (sqlRs.next()) {
+                    List<String> dataList = new ArrayList<>();
+                    for (int i = 0; i < colnames.length; i++) {
+                        // ダブルクォーテーションで囲み＆エスケープ処理
+                        String data = String.valueOf(sqlRs.getObject(colnames[i]));
+                        // @formatter:off
+                        data = data.replaceAll(",", strSc)
+                                .replaceAll("\"", strSdq)
+                                .replaceAll("\r", strScr)
+                                .replaceAll("\n", strSlf)
+                                .replaceAll("\r\n", strScrlf);
+                        // @formatter:on
+                        dataList.add("\"" + data + "\"");
+                    }
+                    bw.append(String.join(",", dataList));
+                    bw.newLine();
+                }
+                // 書き込み終了（次の行へ）
+                bw.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                log.error("エラー発生！　メッセージ：{}", e.getMessage());
+            }
+
+            // log.info("【終了】スレッド名：{} スレッドID：{}", threadName, threadID);
+
+        }
+
     }
 }

@@ -1,9 +1,10 @@
 package dbdump.job0030;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -236,9 +237,9 @@ public class CreateTocTasklet implements Tasklet {
         int colnum = DATA_START_COL;
         for (Path srcPath : srcPathList) {
             log.info("ファイルフルパス：{}", srcPath.toAbsolutePath().toString());
-            LineNumberReader lnr =
-                    new LineNumberReader(new FileReader(srcPath.toAbsolutePath().toString(),
-                            Charset.forName(inputFileEncode)));
+            LineNumberReader lnr = new LineNumberReader(new InputStreamReader(
+                    new FileInputStream(new File(srcPath.toAbsolutePath().toString())),
+                    inputFileEncode));
             String line = "";
             while ((line = lnr.readLine()) != null) {
                 if (line.length() == 0) {
