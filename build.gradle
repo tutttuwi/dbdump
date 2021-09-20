@@ -63,6 +63,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '5.0.0'
 
+    implementation 'com.opencsv:opencsv:5.4'
+
     annotationProcessor 'org.projectlombok:lombok'
     compile("org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4.1:1.16")
 }
