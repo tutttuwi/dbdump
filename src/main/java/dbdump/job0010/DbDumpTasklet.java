@@ -189,7 +189,8 @@ public class DbDumpTasklet implements Tasklet {
                                 .replaceAll("\n", strSlf)
                                 .replaceAll("\r\n", strScrlf);
                         // @formatter:on
-                        dataList.add("\"" + data + "\"");
+                        // "'data" 形式でCSVファイルで開いた際も欠落しないように対応
+                        dataList.add("\"'" + data + "\"");
                     }
                     bw.append(String.join(",", dataList));
                     bw.newLine();
