@@ -31,7 +31,6 @@ java -cp %CD%\resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0010.AppConfig0010 dbDumpJob ^
   outputDir=%date_str%_%time_str%  execSqlList=.\resources\sql\execSqlList.txt ^
-  initSql=.\resources\sql\init.sql ^
   charSplitConma= charSplitDoubleQuoted= ^
   charSplitCr=NONE charSplitLf=NONE charSplitCrLf=NONE ^
   encode=UTF-8
@@ -43,5 +42,9 @@ echo ■　DB DUMP処理　終了
 echo ■　
 echo ■■■■■■■■■■■■■■■■■■■■
 
-pause
+rem pause
+
+echo ■■ TOC実行 ■■
+toc.bat %date_str%_%time_str%
+
 

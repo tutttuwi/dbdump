@@ -6,11 +6,12 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -41,6 +42,9 @@ public class DbDumpTasklet implements Tasklet {
     @Value("#{jobParameters[execSqlList]}")
     String execSqlList;
 
+    @Value("#{jobParameters[initSqlFile]}")
+    String initSqlFile;
+
     // 置換文字列
     @Value("#{jobParameters[charSplitConma]}")
     String strSc;
@@ -64,11 +68,34 @@ public class DbDumpTasklet implements Tasklet {
 
     private static final String SPLIT_NONE = "NONE";
 
+    private Map<String, List<String>> keyMap = new HashMap<>();
+
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext)
             throws Exception {
         // 初期処理
         setup();
+
+        String sql = Files.lines(Paths.get(initSqlFile), Charset.forName(encode)).collect(Collectors.joining(System.getProperty("line.separator")));
+        log.info("init.sql" + sql);
+        // 初期処理用クエリ実行
+        SqlRowSet sqlRs = jdbcTemplate.queryForRowSet(sql);
+        String[] colnames = sqlRs.getMetaData().getColumnNames();
+        while (sqlRs.next()) {
+            for (int i = 0; i < colnames.length; i++) {
+                String data = String.valueOf(sqlRs.getObject(colnames[i]));
+                if (StringUtils.isEmpty(data)) {
+                    continue;
+                }
+                if (keyMap.containsKey(colnames[i])) {
+                    keyMap.get(colnames[i]).add(data);
+                } else {
+                    keyMap.put(colnames[i], new ArrayList<String>(Arrays.asList(data)));
+                }
+            }
+        }
+
+        log.info("registered keyMap:" + keyMap.toString());
 
         ExecutorService executor = Executors.newFixedThreadPool(1);
         try (LineNumberReader br = new LineNumberReader(
@@ -106,6 +133,13 @@ public class DbDumpTasklet implements Tasklet {
      * セットアップ処理.
      */
     private void setup() {
+        if (StringUtils.isEmpty(execSqlList)) {
+            execSqlList = ".\\resources\\sql\\execSqlList.txt";
+        }
+        if (StringUtils.isEmpty(initSqlFile)) {
+            initSqlFile = ".\\resources\\sql\\init.sql";
+        }
+
         if (StringUtils.isEmpty(strSc)) {
             strSc = TAG_CONMA;
         } else if (strSc.equals(SPLIT_NONE)) {
@@ -164,12 +198,13 @@ public class DbDumpTasklet implements Tasklet {
                 }
 
                 String outputFilename = sqlLine.split(":")[0] + ".csv";
-                String outFullPath = String.join("/", new String[] {outputDir, outputFilename});
+                String outFullPath = String.join("/", new String[]{outputDir, outputFilename});
                 String sql = sqlLine.split(":")[1];
                 if (StringUtils.isEmpty(outputFilename) || StringUtils.isEmpty(sql)) {
                     log.warn("行数：{} ファイル名：{} SQL文：{}", br.getLineNumber(), outputFilename, sql);
                     return;
                 }
+                sql = replaceKeyMap(sql); // keyMap変換
                 bw = Files.newBufferedWriter(Paths.get(outFullPath), Charset.forName(encode),
                         StandardOpenOption.CREATE);
                 SqlRowSet sqlRs = jdbcTemplate.queryForRowSet(sql);
@@ -207,5 +242,17 @@ public class DbDumpTasklet implements Tasklet {
 
         }
 
+        /**
+         * キーマップ文字列置換処理
+         */
+        private String replaceKeyMap(String sql) {
+            for (String key : keyMap.keySet()) {
+                List<String> valList = keyMap.get(key);
+                StringJoiner join = new StringJoiner("','");
+                valList.stream().forEach(e -> join.add(e));
+                sql = sql.replaceAll("[" + key + "]", "'" + join.toString() + "'");
+            }
+            return sql;
+        }
     }
 }

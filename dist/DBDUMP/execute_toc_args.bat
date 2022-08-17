@@ -16,6 +16,20 @@ set time_str=%time_str:~0,2%%time_str:~3,2%%time_str:~6,2%
 rem JAVA_HOME設定
 rem set PATH=[jdk11 directory you downloaded];%PATH%
 
+rem SQLファイル置換対象文字列設定
+if "%1" EQU "" (
+  echo ---------------------------------------------------------------
+  echo.
+  echo 置換対象文字列が第一引数に設定されていません。
+  echo.
+  echo ---------------------------------------------------------------
+  pause
+  exit
+) else (
+  rem テンプレートクエリテキストより、置換対象文字列を置換した状態でクエリテキストを作成
+  powershell -command "$(Get-Content '.\resources\sql\execSqlList_template.txt') -replace '{TARGET_TEXT}','''%1''' | Out-File -Encoding Default '.\resources\sql\execSqlList.txt'"
+)
+
 rem ==============================
 rem ＜説明＞指定引数
 rem ------------------------------
@@ -30,8 +44,7 @@ rem ==============================
 java -cp %CD%\resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0010.AppConfig0010 dbDumpJob ^
-  outputDir=%date_str%_%time_str%  execSqlList=.\resources\sql\execSqlList.txt ^
-  initSql=.\resources\sql\init.sql ^
+  outputDir=%date_str%_%time_str%_%1  execSqlList=.\resources\sql\execSqlList.txt ^
   charSplitConma= charSplitDoubleQuoted= ^
   charSplitCr=NONE charSplitLf=NONE charSplitCrLf=NONE ^
   encode=UTF-8
@@ -43,5 +56,9 @@ echo ■　DB DUMP処理　終了
 echo ■　
 echo ■■■■■■■■■■■■■■■■■■■■
 
-pause
+rem pause
+
+echo ■■ TOC実行 ■■
+toc.bat %date_str%_%time_str%_%1
+
 
