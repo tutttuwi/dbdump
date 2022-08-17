@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -36,6 +37,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -61,6 +63,9 @@ public class CreateTocTasklet implements Tasklet {
     String tocFileDir;
     @Value("#{jobParameters[inputFileEncode]}")
     String inputFileEncode;
+    @Value("#{jobParameters[tocFileName]}")
+    String tocFileName;
+    
 
     // 各種変数設定
     private static final String TOC_NAME = "目次";
@@ -79,7 +84,7 @@ public class CreateTocTasklet implements Tasklet {
         // 初期設定
         setup();
         // ファイル名
-        String filename = "toc_" + getYYYYMMDD_HHMMSS() + ".xlsx";
+        String filename = tocFileName;
 
         Workbook workbook = new XSSFWorkbook();
         workbook.createSheet(TOC_NAME);
@@ -306,6 +311,9 @@ public class CreateTocTasklet implements Tasklet {
         }
         if (StringUtils.isEmpty(inputFileEncode)) {
             inputFileEncode = "UTF-8";
+        }
+        if (StringUtils.isEmpty(tocFileName)) {
+            tocFileName = "toc_" + getYYYYMMDD_HHMMSS() + ".xlsx"; // デフォルト名指定
         }
     }
 

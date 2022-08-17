@@ -44,6 +44,7 @@ java -cp %CD%\resources\prop;.\resources\lib\dbdump-0.0.1-SNAPSHOT-all.jar ^
   org.springframework.batch.core.launch.support.CommandLineJobRunner ^
   dbdump.job0030.AppConfig0030 createTocJob ^
   srcDir=%srcDir% tocFileDir ^
+  tocFileName=toc_%srcDir%.xlsx ^
   inputFileEncode=%inputFileEncode%
 
 
